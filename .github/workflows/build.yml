@@ -1,0 +1,24 @@
+name: Build installers
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: smmulti
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+      - name: Build VST3 + AU
+        run: cmake --build build --config Release --target SoundMotelMultidrive_VST3 SoundMotelMultidrive_AU --parallel
+      - name: Build installer
+        run: bash installer/mac/build_pkg.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SoundMotelMultidrive-macOS-Installer
+          path: smmulti/dist/*.pkg
